@@ -126,10 +126,11 @@ BUILD/NUCLEO_F767ZI/ARMC6/main.o: main.cpp \
   mbed-os/cmsis/device/rtos/include/mbed_rtx_storage.h \
   mbed-os/rtos/include/rtos/Kernel.h \
   mbed-os/platform/include/platform/ScopedLock.h \
+  mbed-os/drivers/include/drivers/DigitalIn.h \
+  mbed-os/drivers/include/drivers/interfaces/InterfaceDigitalIn.h \
+  mbed-os/hal/include/hal/gpio_api.h \
   mbed-os/drivers/include/drivers/DigitalOut.h \
   mbed-os/drivers/include/drivers/interfaces/InterfaceDigitalOut.h \
-  mbed-os/hal/include/hal/gpio_api.h \
-  mbed-os/drivers/include/drivers/interfaces/InterfaceDigitalIn.h \
   mbed-os/drivers/include/drivers/InterruptIn.h \
   mbed-os/hal/include/hal/gpio_irq_api.h \
   mbed-os/platform/include/platform/Callback.h \
@@ -230,7 +231,6 @@ BUILD/NUCLEO_F767ZI/ARMC6/main.o: main.cpp \
   mbed-os/platform/include/platform/mbed_application.h \
   mbed-os/platform/include/platform/mbed_interface.h \
   mbed-os/platform/include/platform/mbed_debug.h \
-  mbed-os/drivers/include/drivers/DigitalIn.h \
   mbed-os/drivers/include/drivers/DigitalInOut.h \
   mbed-os/drivers/include/drivers/interfaces/InterfaceDigitalInOut.h \
   mbed-os/drivers/include/drivers/BusIn.h \

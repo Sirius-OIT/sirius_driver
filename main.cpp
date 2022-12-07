@@ -1,10 +1,12 @@
 #include "AnalogIn.h"
+#include "DigitalIn.h"
 #include "DigitalOut.h"
 #include "InterfaceDigitalIn.h"
 #include "InterruptIn.h"
 #include "Mutex.h"
 #include "PinNameAliases.h"
 #include "PinNames.h"
+#include "PinNamesTypes.h"
 #include "PwmOut.h"
 #include "ThisThread.h"
 #include "UnbufferedSerial.h"
@@ -32,6 +34,8 @@
 PwmOut motor(MOTOR1);
 PwmOut motor2(MOTOR2);
 DigitalOut led(LED1);
+DigitalIn rotation_direction_r(PB_9);
+DigitalIn rotation_direction_l(PB_15);
 Ticker ticker;
 
 AnalogIn inputA0(ANALOG_PIN0);
@@ -49,11 +53,11 @@ static UnbufferedSerial *pc;
 
 InterruptIn pulse_l(PULSE_L);
 InterruptIn pulse_r(PULSE_R);
-uint32_t cnt_l=0;
-uint32_t cnt_r=0;
+int32_t cnt_l=0;
+int32_t cnt_r=0;
 
-uint32_t cnt_l_prime=0;
-uint32_t cnt_r_prime=0;
+int32_t cnt_l_prime=0;
+int32_t cnt_r_prime=0;
 
 float_t rpm_l = 0.0f;
 float_t rpm_r = 0.0f;
@@ -115,12 +119,25 @@ void flip()
 
 void counter_l()
 {
-    cnt_l++;
+    //back
+    if(rotation_direction_l.read() == 1)
+    {
+        cnt_l--;
+
+    } else {
+        cnt_l++;   
+    }
 }
 
 void counter_r()
 {
-    cnt_r++;
+    //back
+    if(rotation_direction_r.read() == 0)
+    {
+        cnt_r--;
+    } else {
+        cnt_r++;
+    }
 }
 
 int main()
@@ -129,6 +146,8 @@ int main()
     //パルスカウントのためのpullup
     pulse_l.mode(PullUp);
     pulse_r.mode(PullUp);
+    rotation_direction_r.mode(PullUp);
+    rotation_direction_l.mode(PullUp);
     // pc = new UnbufferedSerial(USBTX, USBRX, 115200);
     ticker.attach(&flip, 10ms);
     pulse_l.rise(&counter_l);
@@ -138,8 +157,9 @@ int main()
         led = !led;
         printf("count_l:%d, count_r:%d\n", cnt_l, cnt_r);
         printf("velocity_left:%f, velocity_right:%f\n", velocity_l, velocity_r);
-        printf("odometry_x:%f, odometry_y:%f\n", odom_x, odom_y);
-        //printf("cnt_l:%d, cnt_1:%d\n", cnt_l, cnt_1);
+        printf("odometry_x:%f, odometry_y:%f theta:%f\n", odom_x, odom_y, theta);
+        printf("rotation_r: %d ", rotation_direction_r.read());
+        printf("rotation_l: %d\n", rotation_direction_l.read());
         ThisThread::sleep_for(100ms);
     }
 }
