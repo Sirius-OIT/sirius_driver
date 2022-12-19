@@ -43,7 +43,8 @@
 #define PULSE 18
 #define PI 3.141592
 
-#define MAXRPM 2500
+#define MAXRPM 3000
+#define BIAS 0.001
 
 PwmOut motor_l(MOTORL);
 PwmOut motor_r(MOTORR);
@@ -95,6 +96,8 @@ float v_l = 0.0f;
 float v_r = 0.0f;
 float pwm_l = 0.0f;
 float pwm_r = 0.0f;
+float rpm_control_l = 0.0f;
+float rpm_control_r = 0.0f;
 
 typedef struct
 {
@@ -158,28 +161,77 @@ void counter_r()
 //control
 void callback(geometry_msgs::msg::Twist *data)
 {
-    radius = data->linear.x / data->angular.z;
-    if(radius == 0)
+    radius = data->linear.x / (data->angular.z + BIAS);
+    if(radius >= 1.0 || radius <= -1.0)
     {
-        v_l = radius * data->angular.z;
-        pwm_l = ((60 * v_l) / 2 * PI * WHELL_RADIUS) / MAXRPM;
+        v_l = (radius) * (data->angular.z+BIAS);
+        rpm_control_l = (60 * v_l) * 100.0 / 2 * PI * WHELL_RADIUS;
+        if(rpm_control_l >= MAXRPM)
+        {
+            rpm_control_l = MAXRPM;
+        } 
+        else if(rpm_control_l <= -MAXRPM)
+        {
+            rpm_control_l = -MAXRPM;
+        }
+        pwm_l = rpm_control_l / MAXRPM;
+        // motor_l = pwm_l;
+        // motor_r = -pwm_l;
+        motor_l.period_us(10);
         motor_l.write(pwm_l);
+        motor_r.period_us(10);
         motor_r.write(pwm_l);
-    } else if(radius <= EPSILON)
-    {
-        v_l = radius * data->angular.z;
-        pwm_l = ((60 * v_l) / 2 * PI * WHELL_RADIUS) / MAXRPM;
-        motor_l.write(pwm_l);
-        motor_r.write(-pwm_l);
 
+    } else if(radius <= 0.0 + EPSILON || radius >= 0.0 - EPSILON)
+    {
+        v_l = (radius) * data->angular.z;
+        rpm_control_l = (60 * v_l) * 100.0 / 2 * PI * WHELL_RADIUS;
+        if(rpm_control_l >= MAXRPM)
+        {
+            rpm_control_l = MAXRPM;
+        }
+        else if(rpm_control_l <= -MAXRPM)
+        {
+            rpm_control_l = -MAXRPM;
+        }
+        pwm_l = rpm_control_l / MAXRPM;
+        pwm_l = pwm_l * 100.0;
+        // motor_l = pwm_l;
+        // motor_r = pwm_l;
+        motor_l.period_us(10);
+        motor_l.write(pwm_l);
+        motor_r.period_us(10);
+        motor_r.write(pwm_l);
 
     } else
     {
         v_l = (radius - HALF_THREAD) * data->angular.z;
         v_r = (radius + HALF_THREAD) * data->angular.z;
-        pwm_l = ((60 * v_l) / 2 * PI * WHELL_RADIUS) / MAXRPM;
-        pwm_r = ((60 * v_r) / 2 * PI * WHELL_RADIUS) / MAXRPM;
+        rpm_control_l = (60 * v_l) * 100.0 / 2 * PI * WHELL_RADIUS;
+        if(rpm_control_l >= MAXRPM)
+        {
+            rpm_control_l = MAXRPM;
+        }
+        else if(rpm_control_l <= -MAXRPM)
+        {
+            rpm_control_l = -MAXRPM;
+        }
+        rpm_control_r = (60 * v_r) * 100.0 / 2 * PI * WHELL_RADIUS;
+        if(rpm_control_r >= MAXRPM)
+        {
+            rpm_control_r = MAXRPM;
+        }
+        else if(rpm_control_r <= -MAXRPM)
+        {
+            rpm_control_r = -MAXRPM;
+        }
+        pwm_l = rpm_control_l / MAXRPM;
+        pwm_r = rpm_control_r / MAXRPM;
+        // motor_l = pwm_l;
+        // motor_r = pwm_r;
+        motor_l.period_us(10);
         motor_l.write(pwm_l);
+        motor_r.period_us(10);
         motor_r.write(pwm_r);
     }
     
@@ -228,6 +280,10 @@ int main()
         pose.orientation.w = cos(theta/2);
 
         pub.publish(pose);
+        printf("radius: %f\n", radius);
+        printf("rpm_control_l: %f, rpm_control_r: %f\n", rpm_control_l, rpm_control_r);
+        printf("v_l: %f, v_r: %f\n", v_l, v_r);
+        printf("pwm_l : %f, pwm_r : %f\n", pwm_l);
 
         osDelay(100);
     }
