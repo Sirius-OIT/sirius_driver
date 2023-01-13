@@ -51,12 +51,14 @@ PwmOut motor_r(MOTORR);
 DigitalOut led(LED1);
 DigitalIn rotation_direction_r(PB_9);
 DigitalIn rotation_direction_l(PB_15);
+
+DigitalOut forward_signal_r(PD_14);
+DigitalOut back_signal_r(PB_5);
+DigitalOut forward_signal_l(PD_15);
+DigitalOut back_signal_l(PA_5);
+
 Ticker ticker;
 Timer stm_clock;
-
-AnalogIn inputA0(ANALOG_PIN0);
-AnalogIn inputA1(ANALOG_PIN1);
-
 
 // main() runs in its own thread in the OS
 using namespace std;
@@ -162,6 +164,7 @@ void counter_r()
 void callback(geometry_msgs::msg::Twist *data)
 {
     radius = data->linear.x / (data->angular.z + BIAS);
+    //forward or back
     if(radius >= 1.0 || radius <= -1.0)
     {
         v_l = (radius) * (data->angular.z+BIAS);
@@ -177,11 +180,25 @@ void callback(geometry_msgs::msg::Twist *data)
         pwm_l = rpm_control_l / MAXRPM;
         // motor_l = pwm_l;
         // motor_r = -pwm_l;
+        if(radius >= 1.0) //forward
+        {
+            forward_signal_l = 0;
+            back_signal_l = 1;
+            forward_signal_r = 1;
+            back_signal_r = 0;
+        }else
+        {
+            forward_signal_l = 1;
+            back_signal_l = 0;
+            forward_signal_r = 0;
+            back_signal_r = 1;
+        }
         motor_l.period_us(10);
         motor_l.write(pwm_l);
         motor_r.period_us(10);
         motor_r.write(pwm_l);
 
+    //rotation only
     } else if(radius <= 0.0 + EPSILON || radius >= 0.0 - EPSILON)
     {
         v_l = (radius) * data->angular.z;
@@ -196,8 +213,19 @@ void callback(geometry_msgs::msg::Twist *data)
         }
         pwm_l = rpm_control_l / MAXRPM;
         pwm_l = pwm_l * 100.0;
-        // motor_l = pwm_l;
-        // motor_r = pwm_l;
+        if(radius <= 0.0 + EPSILON) //forward
+        {
+            forward_signal_l = 1;
+            back_signal_l = 0;
+            forward_signal_r = 1;
+            back_signal_r = 0;
+        }else
+        {
+            forward_signal_l = 0;
+            back_signal_l = 1;
+            forward_signal_r = 0;
+            back_signal_r = 1;
+        }
         motor_l.period_us(10);
         motor_l.write(pwm_l);
         motor_r.period_us(10);
@@ -229,6 +257,19 @@ void callback(geometry_msgs::msg::Twist *data)
         pwm_r = rpm_control_r / MAXRPM;
         // motor_l = pwm_l;
         // motor_r = pwm_r;
+        if(radius > 0.0) //forward
+        {
+            forward_signal_l = 0;
+            back_signal_l = 1;
+            forward_signal_r = 1;
+            back_signal_r = 0;
+        }else
+        {
+            forward_signal_l = 1;
+            back_signal_l = 0;
+            forward_signal_r = 0;
+            back_signal_r = 1;
+        }
         motor_l.period_us(10);
         motor_l.write(pwm_l);
         motor_r.period_us(10);
