@@ -28,9 +28,8 @@ If you haven't setup environment
         }
     }
 }
-```<br>
-1. Copy under code to mros2-mbed/CMakeLists.txt <br>
 ```
+1. Copy under code to mros2-mbed/CMakeLists.txt <br>
 # Copyright (c) 2021 smorita_emb
 # SPDX-License-Identifier: Apache-2.0
 
