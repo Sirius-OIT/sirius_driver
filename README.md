@@ -16,7 +16,19 @@ If you haven't setup environment
 1. git clone this repository, under mros2-mbed/workspace.<br>
 ```mv sirius_driver mros2-mbed/workspace```<br>
 1.add under code to mbed_app.json target_overrides '*' for print float.
-```"target.printf_lib": "std"```<br>
+```
+{
+    "target_overrides": {
+        "*": {
+            "target.printf_lib"        : "std",
+            "platform.stdio-baud-rate" : 115200,
+            "platform.stdio-convert-newlines"   : true,
+            "platform.stdio-buffered-serial"    : true,
+            "platform.stdio-flush-at-exit"      : true
+        }
+    }
+}
+```<br>
 1. Copy under code to mros2-mbed/CMakeLists.txt <br>
 ```
 # Copyright (c) 2021 smorita_emb
