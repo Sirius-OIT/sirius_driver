@@ -177,21 +177,21 @@ void callback(geometry_msgs::msg::Twist *data)
         {
             rpm_control_l = -MAXRPM;
         }
-        pwm_l = rpm_control_l / MAXRPM;
-        // motor_l = pwm_l;
-        // motor_r = -pwm_l;
+
+	    pwm_l = std::abs(rpm_control_l / MAXRPM);
+        
         if(radius >= 1.0) //forward
-        {
-            forward_signal_l = 0;
-            back_signal_l = 1;
-            forward_signal_r = 1;
-            back_signal_r = 0;
-        }else
         {
             forward_signal_l = 1;
             back_signal_l = 0;
             forward_signal_r = 0;
             back_signal_r = 1;
+        }else
+        {
+            forward_signal_l = 0;
+            back_signal_l = 1;
+            forward_signal_r = 1;
+            back_signal_r = 0;
         }
         motor_l.period_us(10);
         motor_l.write(pwm_l);
@@ -201,7 +201,7 @@ void callback(geometry_msgs::msg::Twist *data)
     //rotation only
     } else if(radius <= 0.0 + EPSILON || radius >= 0.0 - EPSILON)
     {
-        v_l = (radius) * data->angular.z;
+        v_l = data->angular.z;
         rpm_control_l = (60 * v_l) * 100.0 / 2 * PI * WHELL_RADIUS;
         if(rpm_control_l >= MAXRPM)
         {
@@ -211,9 +211,11 @@ void callback(geometry_msgs::msg::Twist *data)
         {
             rpm_control_l = -MAXRPM;
         }
+
         pwm_l = rpm_control_l / MAXRPM;
-        pwm_l = pwm_l * 100.0;
-        if(radius <= 0.0 + EPSILON) //forward
+        pwm_l = std::abs(pwm_l + 0.02);
+
+        if(rpm_control_l <= 0.0) //forward
         {
             forward_signal_l = 1;
             back_signal_l = 0;
