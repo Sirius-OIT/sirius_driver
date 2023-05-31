@@ -27,10 +27,10 @@
 #define SUBNET_MASK ("255.255.255.0") /* Subnet mask */
 #define DEFAULT_GATEWAY ("192.168.11.1") /* Default gateway */
 
-#define MOTORL PA_6
-#define MOTORR PC_7
-#define PULSE_L PB_8
-#define PULSE_R PC_6
+#define MOTORL PF_7 
+#define MOTORR PE_13
+#define PULSE_L PE_6 
+#define PULSE_R PE_9
 
 #define ANALOG_PIN0 A0
 #define ANALOG_PIN1 A1
@@ -49,13 +49,13 @@
 PwmOut motor_l(MOTORL);
 PwmOut motor_r(MOTORR);
 DigitalOut led(LED1);
-DigitalIn rotation_direction_r(PB_9);
-DigitalIn rotation_direction_l(PB_15);
+DigitalIn rotation_direction_r(PF_14);
+DigitalIn rotation_direction_l(PF_8);
 
-DigitalOut forward_signal_r(PD_14);
-DigitalOut back_signal_r(PB_5);
-DigitalOut forward_signal_l(PD_15);
-DigitalOut back_signal_l(PA_5);
+DigitalOut forward_signal_r(PG_14);
+DigitalOut back_signal_r(PF_15);
+DigitalOut forward_signal_l(PG_1);
+DigitalOut back_signal_l(PF_9);
 
 Ticker ticker;
 Timer stm_clock;
@@ -327,6 +327,9 @@ int main()
         printf("rpm_control_l: %f, rpm_control_r: %f\n", rpm_control_l, rpm_control_r);
         printf("v_l: %f, v_r: %f\n", v_l, v_r);
         printf("pwm_l : %f, pwm_r : %f\n", pwm_l);
+
+        printf("cnt_l : %d\ncnt_r : %d\n",cnt_l,cnt_r);
+        printf("L : %d\nR : %d\n",rotation_direction_l.read(),rotation_direction_r.read());
 
         osDelay(100);
     }
