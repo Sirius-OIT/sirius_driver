@@ -1,4 +1,4 @@
-#include "AnalogIn.h"
+    #include "AnalogIn.h"
 #include "DigitalIn.h"
 #include "DigitalOut.h"
 #include "InterruptIn.h"
@@ -101,6 +101,9 @@ float pwm_r = 0.0f;
 float rpm_control_l = 0.0f;
 float rpm_control_r = 0.0f;
 
+//debug
+int frag;
+
 typedef struct
 {
   uint32_t secs; // Transmit Time-stamp seconds.
@@ -165,7 +168,8 @@ void callback(geometry_msgs::msg::Twist *data)
 {
     radius = data->linear.x / (data->angular.z + BIAS);
     //forward or back
-    if(radius >= 1.0 || radius <= -1.0)
+    //if(radius >= 1.0 || radius <= -1.0)
+    if(radius >= 100.0 || radius <= -100.0)
     {
         v_l = (radius) * (data->angular.z+BIAS);
         rpm_control_l = (60 * v_l) * 100.0 / 2 * PI * WHELL_RADIUS;
@@ -198,8 +202,10 @@ void callback(geometry_msgs::msg::Twist *data)
         motor_r.period_us(10);
         motor_r.write(pwm_l);
 
+        frag = 1;
+
     //rotation only
-    } else if(radius <= 0.0 + EPSILON || radius >= 0.0 - EPSILON)
+    } else if(radius <= 0.0 + EPSILON && radius >= 0.0 - EPSILON)
     {
         v_l = data->angular.z;
         rpm_control_l = (60 * v_l) * 100.0 / 2 * PI * WHELL_RADIUS;
@@ -233,6 +239,8 @@ void callback(geometry_msgs::msg::Twist *data)
         motor_r.period_us(10);
         motor_r.write(pwm_l);
 
+        frag = 2;
+
     } else
     {
         v_l = (radius - HALF_THREAD) * data->angular.z;
@@ -261,21 +269,23 @@ void callback(geometry_msgs::msg::Twist *data)
         // motor_r = pwm_r;
         if(radius > 0.0) //forward
         {
-            forward_signal_l = 0;
-            back_signal_l = 1;
-            forward_signal_r = 1;
-            back_signal_r = 0;
-        }else
-        {
             forward_signal_l = 1;
             back_signal_l = 0;
             forward_signal_r = 0;
             back_signal_r = 1;
+        }else
+        {
+            forward_signal_l = 0;
+            back_signal_l = 1;
+            forward_signal_r = 1;
+            back_signal_r = 0;
         }
         motor_l.period_us(10);
         motor_l.write(pwm_l);
         motor_r.period_us(10);
         motor_r.write(pwm_r);
+
+        frag = 3;
     }
     
 }
@@ -326,10 +336,29 @@ int main()
         printf("radius: %f\n", radius);
         printf("rpm_control_l: %f, rpm_control_r: %f\n", rpm_control_l, rpm_control_r);
         printf("v_l: %f, v_r: %f\n", v_l, v_r);
-        printf("pwm_l : %f, pwm_r : %f\n", pwm_l);
+        //printf("pwm_l : %f, pwm_r : %f\n", pwm_l);
+        printf("pwm_l : %f, pwm_r : %f\n", pwm_l,pwm_r);
 
-        printf("cnt_l : %d\ncnt_r : %d\n",cnt_l,cnt_r);
-        printf("L : %d\nR : %d\n",rotation_direction_l.read(),rotation_direction_r.read());
+        switch (frag)
+        {
+        case 1:
+            printf("forward\n");
+            break;
+
+        case 2:
+            printf("rotation\n");
+            break;
+
+        case 3:
+            printf("curve\n");
+            break;
+
+        default:
+            break;
+        }
+
+        //printf("cnt_l : %d\ncnt_r : %d\n",cnt_l,cnt_r);
+        //printf("L : %d\nR : %d\n",rotation_direction_l.read(),rotation_direction_r.read());
 
         osDelay(100);
     }
