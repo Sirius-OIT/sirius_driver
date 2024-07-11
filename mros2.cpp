@@ -1,5 +1,4 @@
 #include "mros2.h"
-
 #include <rtps/rtps.h>
 
 #ifdef __MBED__

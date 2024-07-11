@@ -1,4 +1,4 @@
-    #include "AnalogIn.h"
+#include "AnalogIn.h"
 #include "DigitalIn.h"
 #include "DigitalOut.h"
 #include "InterruptIn.h"
@@ -363,7 +363,7 @@ int main()
         osDelay(100);
     }
 
-    mros2::spin();
+    mros2::spin(); 
     return 0;
 }
 

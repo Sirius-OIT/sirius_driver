@@ -82,6 +82,45 @@ option(VERBOSE_BUILD "Have a verbose build process")
 if(VERBOSE_BUILD)
   set(CMAKE_VERBOSE_MAKEFILE ON)
 endif()
+```
+
+## flowchart
+
+```mermaid
+graph TD
+    A([START])
+    %% main関数の処理
+    --> B[[main関数]]
+
+    B0[[main関数]]
+    --> B1[いろいろ初期化]
+    --> B2[mros2の初期化]
+    --> B2.1[mros2_nodeの作成]
+    --> B2.2["publisherの作成 (wheel_odom)"]
+    --> B2.3["subscriberの作成 (cmd_vel)"]
+    --> B3[メインループ]
+    --> B4[オドメトリのメッセージを作成]
+    --> B5[オドメトリをパブリッシュ]
+    --> B6[シリアル通信でデバッグ]
+    -- 100ms待つ --> B3
+
+    %% callback関数の処理
+    C0[[callback関数]]
+    -- cmd_velを受信 
+    --> C1[回転半径 radiusを計算]
+    --> C2{radiusが100以上，または-100以下のとき}
+    -- yes --> C3[直進]
+    C2 -- no --> C4{radiusが0+EPSILON以下, かつ0-EPSILON以上のとき}
+    C4 -- yes --> C5[回転]
+    C4 -- no --> C6[直進＋回転]
+
+    %% その他の処理
+    D0[[flip関数]]
+    --> D1["エンコーダの値から，左右の車輪の速度を計算[m/s]"]
+    --> D2["エンコーダの値から，ROS2用の車体の速度，角速度，回転半径，odomを計算"]
+
+    E0[[counter_l, counter_r関数]]
+    --> E1["エンコーダの値を取得して，カウンターを増やす，または減らす"]
 
 ```
 
